@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ballad Stage Timer</title>
+  <style>
+    :root {
+      --bg1: #060817;
+      --bg2: #101a3a;
+      --glass: rgba(255, 255, 255, 0.105);
+      --glass-strong: rgba(255, 255, 255, 0.18);
+      --line: rgba(255, 255, 255, 0.22);
+      --text: #ffffff;
+      --muted: rgba(255, 255, 255, 0.7);
+      --gold: #f7d98a;
+      --blue: #77a8ff;
+      --purple: #9d7bff;
+      --rose: #ff7da6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text);
+      padding: 22px;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(98, 132, 255, 0.32), transparent 32%),
+        radial-gradient(circle at 80% 4%, rgba(255, 173, 119, 0.22), transparent 28%),
+        radial-gradient(circle at 50% 100%, rgba(157, 123, 255, 0.22), transparent 34%),
+        linear-gradient(145deg, var(--bg1), var(--bg2) 52%, #060710);
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      top: -12%;
+      width: 35vw;
+      height: 120vh;
+      pointer-events: none;
+      opacity: 0.38;
+      filter: blur(2px);
+      background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.58),
+        rgba(119, 168, 255, 0.12) 45%,
+        transparent 80%
+      );
+      transform-origin: top center;
+      mix-blend-mode: screen;
+      animation: sway 7s ease-in-out infinite alternate;
+    }
+
+    body::before {
+      left: 5vw;
+      clip-path: polygon(42% 0%, 60% 0%, 100% 100%, 0% 100%);
+      transform: rotate(-14deg);
+    }
+
+    body::after {
+      right: 5vw;
+      clip-path: polygon(38% 0%, 56% 0%, 100% 100%, 0% 100%);
+      transform: rotate(14deg);
+      animation-delay: -2.5s;
+    }
+
+    @keyframes sway {
+      from { transform: rotate(-18deg) translateX(-10px); }
+      to { transform: rotate(18deg) translateX(10px); }
+    }
+
+    .stars {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,0.78) 0 1px, transparent 1.6px),
+        radial-gradient(circle, rgba(247,217,138,0.68) 0 1px, transparent 1.7px),
+        radial-gradient(circle, rgba(119,168,255,0.52) 0 1px, transparent 1.8px);
+      background-size: 115px 115px, 165px 165px, 215px 215px;
+      background-position: 10px 18px, 42px 72px, 95px 18px;
+      animation: twinkle 4s ease-in-out infinite alternate;
+      opacity: 0.48;
+    }
+
+    @keyframes twinkle {
+      from { opacity: 0.28; transform: translateY(0); }
+      to { opacity: 0.62; transform: translateY(-8px); }
+    }
+
+    .stage-floor {
+      position: fixed;
+      left: -10%;
+      right: -10%;
+      bottom: -18%;
+      height: 44vh;
+      border-radius: 50% 50% 0 0;
+      background:
+        radial-gradient(ellipse at center, rgba(255, 255, 255, 0.16), transparent 55%),
+        repeating-radial-gradient(ellipse at center, rgba(255,255,255,0.1) 0 1px, transparent 1px 38px);
+      opacity: 0.42;
+      pointer-events: none;
+    }
+
+    .app {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 470px;
+      border-radius: 34px;
+      padding: 30px;
+      background:
+        linear-gradient(145deg, rgba(255,255,255,0.18), rgba(255,255,255,0.07)),
+        radial-gradient(circle at 50% 0%, rgba(247,217,138,0.17), transparent 42%);
+      border: 1px solid var(--line);
+      box-shadow:
+        0 34px 120px rgba(0, 0, 0, 0.56),
+        inset 0 1px 0 rgba(255,255,255,0.28);
+      backdrop-filter: blur(22px);
+      overflow: hidden;
+    }
+
+    .app::before {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(247,217,138,0.95), rgba(119,168,255,0.3), rgba(255,125,166,0.45));
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+      opacity: 0.65;
+    }
+
+    .app::after {
+      content: "";
+      position: absolute;
+      width: 220px;
+      height: 220px;
+      top: -90px;
+      right: -80px;
+      background: radial-gradient(circle, rgba(247,217,138,0.34), transparent 68%);
+      pointer-events: none;
+    }
+
+    .badge {
+      width: max-content;
+      margin: 0 auto 12px;
+      padding: 7px 13px;
+      border-radius: 999px;
+      border: 1px solid rgba(247,217,138,0.32);
+      background: rgba(247,217,138,0.12);
+      color: #ffe9ac;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 33px;
+      line-height: 1;
+      letter-spacing: -0.04em;
+      margin-bottom: 9px;
+      text-shadow: 0 0 22px rgba(119,168,255,0.45);
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .vinyl {
+      position: relative;
+      width: 252px;
+      height: 252px;
+      margin: 0 auto 24px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at center, rgba(255,255,255,0.95) 0 5px, transparent 6px),
+        radial-gradient(circle at center, rgba(247,217,138,0.95) 0 22px, rgba(26, 31, 62, 0.98) 23px 36px, transparent 37px),
+        repeating-radial-gradient(circle at center, rgba(255,255,255,0.13) 0 1px, transparent 1px 10px),
+        linear-gradient(135deg, rgba(10,12,27,1), rgba(45,55,103,1));
+      box-shadow:
+        inset 0 0 40px rgba(255,255,255,0.07),
+        0 20px 70px rgba(0,0,0,0.42),
+        0 0 55px rgba(119,168,255,0.25);
+    }
+
+    .vinyl.running {
+      animation: spin 8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .display-card {
+      position: absolute;
+      width: 204px;
+      height: 204px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(circle at 50% 28%, rgba(255,255,255,0.16), transparent 34%),
+        rgba(8, 10, 24, 0.76);
+      border: 1px solid rgba(255,255,255,0.2);
+      backdrop-filter: blur(8px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
+      animation: none;
+    }
+
+    .time-display {
+      font-size: clamp(43px, 13vw, 57px);
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: -0.07em;
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 0 22px rgba(247,217,138,0.42);
+    }
+
+    .song-status {
+      margin-top: 10px;
+      color: rgba(255,255,255,0.7);
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .input-box {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 17px;
+      padding: 12px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+
+    .input-box label {
+      display: block;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.65);
+      margin-bottom: 6px;
+      text-align: center;
+    }
+
+    input {
+      width: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: white;
+      font-size: 22px;
+      text-align: center;
+      font-weight: 800;
+    }
+
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      appearance: none;
+      margin: 0;
+    }
+
+    .preset-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    button {
+      border: none;
+      border-radius: 16px;
+      padding: 13px 10px;
+      font-size: 15px;
+      font-weight: 800;
+      color: white;
+      cursor: pointer;
+      transition: transform 0.13s ease, filter 0.13s ease, background 0.13s ease;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.16);
+    }
+
+    button:hover {
+      filter: brightness(1.09);
+    }
+
+    button:active {
+      transform: scale(0.96);
+    }
+
+    .preset {
+      background: rgba(255, 255, 255, 0.12);
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 13px;
+      border: 1px solid rgba(255,255,255,0.11);
+    }
+
+    .preset span {
+      display: block;
+      font-size: 10px;
+      color: rgba(247,217,138,0.82);
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .control-row {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .start {
+      background: linear-gradient(135deg, #5b78ff, #9d7bff);
+    }
+
+    .pause {
+      background: rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .reset {
+      background: linear-gradient(135deg, rgba(255, 125, 166, 0.92), rgba(255, 98, 98, 0.88));
+    }
+
+    .status {
+      min-height: 24px;
+      text-align: center;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.76);
+      margin-bottom: 13px;
+    }
+
+    .progress-wrap {
+      position: relative;
+      width: 100%;
+      height: 13px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255,255,255,0.09);
+    }
+
+    .progress {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue), var(--gold), var(--rose));
+      border-radius: 999px;
+      transition: width 0.25s linear;
+      box-shadow: 0 0 18px rgba(247,217,138,0.36);
+    }
+
+    .mini-panel {
+      margin-top: 17px;
+      padding: 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.075);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .mini-panel strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 3px;
+    }
+
+    .mini-panel p {
+      font-size: 12px;
+      color: rgba(255,255,255,0.62);
+      line-height: 1.45;
+    }
+
+    .toggle {
+      width: 54px;
+      height: 31px;
+      border-radius: 999px;
+      padding: 3px;
+      background: rgba(255,255,255,0.16);
+      border: 1px solid rgba(255,255,255,0.16);
+      cursor: pointer;
+    }
+
+    .toggle-dot {
+      width: 23px;
+      height: 23px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ffffff, #f7d98a);
+      transition: transform 0.18s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .muted .toggle-dot {
+      transform: translateX(23px);
+      background: linear-gradient(135deg, #b8c5ff, #ffffff);
+    }
+
+    .footer {
+      margin-top: 15px;
+      text-align: center;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.42);
+      line-height: 1.5;
+    }
+
+    .completed-flash {
+      animation: completedGlow 1.2s ease-in-out 2;
+    }
+
+    @keyframes completedGlow {
+      0%, 100% { box-shadow: 0 34px 120px rgba(0,0,0,0.56), inset 0 1px 0 rgba(255,255,255,0.28); }
+      50% { box-shadow: 0 34px 120px rgba(0,0,0,0.56), 0 0 70px rgba(247,217,138,0.72), inset 0 1px 0 rgba(255,255,255,0.34); }
+    }
+
+    @media (max-width: 420px) {
+      .app {
+        padding: 23px;
+        border-radius: 28px;
+      }
+
+      h1 {
+        font-size: 29px;
+      }
+
+      .vinyl {
+        width: 222px;
+        height: 222px;
+      }
+
+      .display-card {
+        width: 178px;
+        height: 178px;
+      }
+
+      .time-display {
+        font-size: 44px;
+      }
+
+      .control-row {
+        grid-template-columns: 1fr;
+      }
+
+      .preset-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="stars"></div>
+  <div class="stage-floor"></div>
+
+  <main id="app" class="app">
+    <div class="badge">Romantic Pop Ballad</div>
+    <h1>Ballad Stage Timer</h1>
+    <p class="subtitle">스포트라이트 아래에서 천천히 집중하는 타이머</p>
+
+    <section id="vinyl" class="vinyl" aria-label="타이머 표시 영역">
+      <div class="display-card">
+        <div id="timeDisplay" class="time-display">00:05:00</div>
+        <div id="songStatus" class="song-status">Ready</div>
+      </div>
+    </section>
+
+    <div class="input-row">
+      <div class="input-box">
+        <label for="hours">시</label>
+        <input id="hours" type="number" min="0" max="99" value="0" />
+      </div>
+      <div class="input-box">
+        <label for="minutes">분</label>
+        <input id="minutes" type="number" min="0" max="59" value="5" />
+      </div>
+      <div class="input-box">
+        <label for="seconds">초</label>
+        <input id="seconds" type="number" min="0" max="59" value="0" />
+      </div>
+    </div>
+
+    <div class="preset-row">
+      <button class="preset" data-seconds="60">Intro<span>1분</span></button>
+      <button class="preset" data-seconds="180">Verse<span>3분</span></button>
+      <button class="preset" data-seconds="300">Chorus<span>5분</span></button>
+      <button class="preset" data-seconds="600">Encore<span>10분</span></button>
+    </div>
+
+    <div class="control-row">
+      <button id="startBtn" class="start">무대 시작</button>
+      <button id="pauseBtn" class="pause">잠시 멈춤</button>
+      <button id="resetBtn" class="reset">처음으로</button>
+    </div>
+
+    <div id="status" class="status">대기 중입니다. 시간을 정하고 시작해 주세요.</div>
+
+    <div class="progress-wrap" aria-label="진행률">
+      <div id="progress" class="progress"></div>
+    </div>
+
+    <div class="mini-panel">
+      <div>
+        <strong>감성 알림음</strong>
+        <p>완료되면 짧은 피아노풍 알림음이 울립니다. 조용히 쓰고 싶으면 꺼두세요.</p>
+      </div>
+      <div id="soundToggle" class="toggle" role="button" tabindex="0" aria-label="알림음 켜기 끄기">
+        <div class="toggle-dot"></div>
+      </div>
+    </div>
+
+    <div class="footer">
+      특정 로고나 실제 아티스트 이미지를 쓰지 않고, 2000년대 팝 발라드 무대 분위기로 디자인했습니다.
+    </div>
+  </main>
+
+  <script>
+    const app = document.getElementById("app");
+    const vinyl = document.getElementById("vinyl");
+    const hoursInput = document.getElementById("hours");
+    const minutesInput = document.getElementById("minutes");
+    const secondsInput = document.getElementById("seconds");
+    const timeDisplay = document.getElementById("timeDisplay");
+    const songStatus = document.getElementById("songStatus");
+    const startBtn = document.getElementById("startBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const statusText = document.getElementById("status");
+    const progress = document.getElementById("progress");
+    const soundToggle = document.getElementById("soundToggle");
+
+    let timerId = null;
+    let totalSeconds = 0;
+    let remainingSeconds = 0;
+    let isRunning = false;
+    let soundOn = true;
+
+    function clampNumber(value, min, max) {
+      const number = Number(value);
+      if (Number.isNaN(number)) return min;
+      return Math.min(Math.max(Math.floor(number), min), max);
+    }
+
+    function getInputSeconds() {
+      const h = clampNumber(hoursInput.value, 0, 99);
+      const m = clampNumber(minutesInput.value, 0, 59);
+      const s = clampNumber(secondsInput.value, 0, 59);
+
+      hoursInput.value = h;
+      minutesInput.value = m;
+      secondsInput.value = s;
+
+      return h * 3600 + m * 60 + s;
+    }
+
+    function setInputsFromSeconds(seconds) {
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = seconds % 60;
+
+      hoursInput.value = h;
+      minutesInput.value = m;
+      secondsInput.value = s;
+    }
+
+    function formatTime(seconds) {
+      const h = String(Math.floor(seconds / 3600)).padStart(2, "0");
+      const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
+      const s = String(seconds % 60).padStart(2, "0");
+      return `${h}:${m}:${s}`;
+    }
+
+    function updateDisplay() {
+      timeDisplay.textContent = formatTime(remainingSeconds);
+
+      if (totalSeconds > 0) {
+        const percent = ((totalSeconds - remainingSeconds) / totalSeconds) * 100;
+        progress.style.width = `${Math.min(Math.max(percent, 0), 100)}%`;
+      } else {
+        progress.style.width = "0%";
+      }
+    }
+
+    function playAlarm() {
+      if (!soundOn) return;
+
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+
+      const audioContext = new AudioContext();
+      const notes = [523.25, 659.25, 783.99, 1046.5];
+
+      notes.forEach((frequency, index) => {
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime + index * 0.22);
+
+        gain.gain.setValueAtTime(0.0001, audioContext.currentTime + index * 0.22);
+        gain.gain.exponentialRampToValueAtTime(0.2, audioContext.currentTime + index * 0.22 + 0.035);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + index * 0.22 + 0.42);
+
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+
+        oscillator.start(audioContext.currentTime + index * 0.22);
+        oscillator.stop(audioContext.currentTime + index * 0.22 + 0.45);
+      });
+    }
+
+    function startTimer() {
+      if (isRunning) return;
+
+      if (remainingSeconds <= 0) {
+        totalSeconds = getInputSeconds();
+        remainingSeconds = totalSeconds;
+      }
+
+      if (remainingSeconds <= 0) {
+        statusText.textContent = "시간을 먼저 설정해 주세요.";
+        songStatus.textContent = "No Time";
+        return;
+      }
+
+      isRunning = true;
+      vinyl.classList.add("running");
+      app.classList.remove("completed-flash");
+      statusText.textContent = "스포트라이트가 켜졌습니다. 집중 모드 시작!";
+      songStatus.textContent = "Playing";
+      updateDisplay();
+
+      timerId = setInterval(() => {
+        remainingSeconds -= 1;
+        updateDisplay();
+
+        if (remainingSeconds <= 0) {
+          clearInterval(timerId);
+          timerId = null;
+          isRunning = false;
+          remainingSeconds = 0;
+          vinyl.classList.remove("running");
+          app.classList.add("completed-flash");
+          updateDisplay();
+          statusText.textContent = "완료! 오늘의 무대가 끝났습니다.";
+          songStatus.textContent = "Finale";
+          playAlarm();
+        }
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      if (!isRunning) return;
+
+      clearInterval(timerId);
+      timerId = null;
+      isRunning = false;
+      vinyl.classList.remove("running");
+      statusText.textContent = "잠시 멈췄습니다. 다시 이어갈 수 있어요.";
+      songStatus.textContent = "Paused";
+    }
+
+    function resetTimer() {
+      clearInterval(timerId);
+      timerId = null;
+      isRunning = false;
+      vinyl.classList.remove("running");
+      app.classList.remove("completed-flash");
+      totalSeconds = getInputSeconds();
+      remainingSeconds = totalSeconds;
+      statusText.textContent = "처음으로 돌아왔습니다.";
+      songStatus.textContent = "Ready";
+      updateDisplay();
+    }
+
+    function syncFromInputs() {
+      if (isRunning) return;
+      totalSeconds = getInputSeconds();
+      remainingSeconds = totalSeconds;
+      app.classList.remove("completed-flash");
+      songStatus.textContent = "Ready";
+      statusText.textContent = "대기 중입니다. 시간을 정하고 시작해 주세요.";
+      updateDisplay();
+    }
+
+    function toggleSound() {
+      soundOn = !soundOn;
+      soundToggle.classList.toggle("muted", !soundOn);
+      statusText.textContent = soundOn ? "알림음이 켜졌습니다." : "알림음이 꺼졌습니다.";
+    }
+
+    document.querySelectorAll(".preset").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (isRunning) return;
+        const seconds = Number(button.dataset.seconds);
+        totalSeconds = seconds;
+        remainingSeconds = seconds;
+        setInputsFromSeconds(seconds);
+        app.classList.remove("completed-flash");
+        songStatus.textContent = button.textContent.replace(/\d+분/g, "").trim() || "Ready";
+        statusText.textContent = `${button.querySelector("span").textContent} 코스로 설정했습니다.`;
+        updateDisplay();
+      });
+    });
+
+    [hoursInput, minutesInput, secondsInput].forEach((input) => {
+      input.addEventListener("input", syncFromInputs);
+    });
+
+    startBtn.addEventListener("click", startTimer);
+    pauseBtn.addEventListener("click", pauseTimer);
+    resetBtn.addEventListener("click", resetTimer);
+    soundToggle.addEventListener("click", toggleSound);
+    soundToggle.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        toggleSound();
+      }
+    });
+
+    syncFromInputs();
+  </script>
+</body>
+</html>
